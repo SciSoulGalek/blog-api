@@ -1,0 +1,11 @@
+env/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+settings/.env
+logs/
+.idea/
+.vscode/
+.pytest_cache/
+.ruff_cache/

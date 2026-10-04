@@ -1,0 +1,7 @@
+[tool.ruff]
+exclude = [
+    "**/migrations/*.py",
+    "**/admin.py",
+    "**/tests.py",
+    "**/views.py",
+]
