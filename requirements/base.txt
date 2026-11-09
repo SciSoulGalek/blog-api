@@ -2,3 +2,4 @@ Django
 djangorestframework
 djangorestframework-simplejwt
 python-decouple
+django-unfold==0.75.0
