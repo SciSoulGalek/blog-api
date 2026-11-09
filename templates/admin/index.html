@@ -1,0 +1,86 @@
+{% extends "admin/base_site.html" %}
+{% load i18n unfold %}
+
+{% block content %}
+
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+
+    {% component "unfold/components/card.html" with title="Total users" %}
+        <div class="text-3xl font-semibold">{{ total_users }}</div>
+    {% endcomponent %}
+
+    {% component "unfold/components/card.html" with title="Published posts" %}
+        <div class="text-3xl font-semibold">{{ published_posts }}</div>
+    {% endcomponent %}
+
+    {% component "unfold/components/card.html" with title="Draft posts" %}
+        <div class="text-3xl font-semibold">{{ draft_posts }}</div>
+    {% endcomponent %}
+
+    {% component "unfold/components/card.html" with title="Comments" %}
+        <div class="text-3xl font-semibold">{{ total_comments }}</div>
+    {% endcomponent %}
+
+</div>
+
+<div class="mt-8">
+    {% component "unfold/components/card.html" with title="Posts per category" %}
+        {% component "unfold/components/chart/bar.html" with data=category_chart height=300 %}
+        {% endcomponent %}
+    {% endcomponent %}
+</div>
+
+<div class="mt-8">
+    {% component "unfold/components/card.html" with title="Top 5 authors" %}
+        <table class="w-full">
+            <thead>
+                <tr>
+                    <th class="text-left p-2">Author</th>
+                    <th class="text-left p-2">Posts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for author in top_authors %}
+                <tr>
+                    <td class="p-2">{{ author.email }}</td>
+                    <td class="p-2">{{ author.post_count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" class="p-2">No authors available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endcomponent %}
+</div>
+
+<div class="mt-8">
+    {% component "unfold/components/card.html" with title="Publishing progress" %}
+        <div class="mb-4">
+            <div class="flex justify-between mb-2">
+                <span>Published</span>
+                <span>{{ published_percentage|floatformat:1 }}%</span>
+            </div>
+            <div class="w-full bg-base-200 rounded-full h-3">
+                <div class="bg-green-500 h-3 rounded-full"
+                     style="width: {{ published_percentage }}%">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="flex justify-between mb-2">
+                <span>Drafts</span>
+                <span>{{ draft_percentage|floatformat:1 }}%</span>
+            </div>
+            <div class="w-full bg-base-200 rounded-full h-3">
+                <div class="bg-blue-500 h-3 rounded-full"
+                     style="width: {{ draft_percentage }}%">
+                </div>
+            </div>
+        </div>
+    {% endcomponent %}
+</div>
+
+{% endblock %}
