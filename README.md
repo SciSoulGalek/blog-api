@@ -143,6 +143,33 @@ Open the administration panel at:
 http://127.0.0.1:8000/admin/
 ```
 
+### 10. Django ORM Queries
+Implemented 50 Django ORM queries in apps/blog/queries/py, covering:
+
+- Filtering, searching, sorting, pagination.
+- Model relationships and Q/F expressions.
+- Aggregation, annotations and conditional expressions.
+- Subqueries, OuterRef and Exists.
+- Database modifications: creating tags, publishing drafts, merging categories and deleting comments.
+
+### Running queries
+```
+python manage.py queries
+```
+### Run a specific query
+```
+python manage.py queries --number 6
+```
+### Display generated SQL:
+```
+python manage.py queries --number 6 --sql
+```
+Query arguments are configured in QUERY_ARGS inside apps/blog/management/commands/queries.py
+
+Queries 40-44 modify database records and are excluded from the default execution. They must be run individually using --number
+
+The command displays query names, SQL query counts, result counts and sample results.
+
 ## Administration panel
 
 The project uses Django Unfold for its administration interface.

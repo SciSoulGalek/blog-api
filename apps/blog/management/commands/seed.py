@@ -1,9 +1,11 @@
 import random
 import time
+from datetime import timedelta
 
 from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.text import slugify
 from faker import Faker
 
@@ -19,6 +21,7 @@ SEED_PASSWORD = "seed-password-123"
 PUBLISHED_POST_PERCENTAGE = 70
 DRAFT_POST_PERCENTAGE = 30
 NO_CATEGORY_PERCENTAGE = 10
+UPDATED_POSTS_PERCENTAGE = 30
 
 MIN_TAGS_PER_POST = 0
 MAX_TAGS_PER_POST = 5
@@ -32,6 +35,9 @@ MAX_COMMENT_SENTENCES = 3
 INACTIVE_USER_PERCENTAGE = 10
 STAFF_USER_PERCENTAGE = 5
 SEED_EMAIL_DOMAIN = "example.com"
+
+DAYS_IN_YEAR = 365
+MAX_UPDATE_DAYS = 30
 
 CATEGORIES = [
     "Programming",
@@ -183,6 +189,8 @@ def generate_posts(count, users, categories, tags, fake):
             ),
         )
 
+        created_at = timezone.now() - timedelta(days = random.randint(0, DAYS_IN_YEAR))
+
         post = Post(
             author=random.choice(users),
             title=title,
@@ -190,12 +198,29 @@ def generate_posts(count, users, categories, tags, fake):
             body="\n\n".join(body_paragraphs),
             category=category,
             status=status,
+            created_at=created_at,
+            updated_at=created_at,
         )
 
         posts.append(post)
         post_tags.append(selected_tags)
-
+    
+    post_creation_dates = [post.created_at for post in posts]
+    
     created_posts = Post.objects.bulk_create(posts)
+
+    now = timezone.now()
+
+    for post, created_at in zip(posts, post_creation_dates):
+        post.created_at = created_at
+        post.updated_at = created_at
+
+        max_days = min(MAX_UPDATE_DAYS, (now - created_at).days)
+
+        if max_days >= 1 and random.randint(1, 100) <= UPDATED_POSTS_PERCENTAGE:
+            post.updated_at = created_at + timedelta(days=random.randint(1, max_days))
+
+    Post.objects.bulk_update(posts, ["created_at", "updated_at"])
 
     for post, selected_tags in zip(created_posts, post_tags):
         post.tags.set(selected_tags)
@@ -214,9 +239,12 @@ def generate_comments(count, users, posts, fake):
     comments = []
 
     for _ in range(count):
+        post = random.choice(published_posts)
+        now = timezone.now()
+
         comments.append(
             Comment(
-                post=random.choice(published_posts),
+                post=post,
                 author=random.choice(users),
                 body=" ".join(
                     fake.sentences(
@@ -226,10 +254,22 @@ def generate_comments(count, users, posts, fake):
                         )
                     )
                 ),
+                created_at = post.created_at + timedelta(seconds=random.randint(
+                    0, int((now - post.created_at).total_seconds())
+                )),
             )
         )
 
-    return Comment.objects.bulk_create(comments)
+    comment_dates = [comment.created_at for comment in comments]
+
+    Comment.objects.bulk_create(comments)
+
+    for comment, created_at in zip(comments, comment_dates):
+        comment.created_at = created_at
+
+    Comment.objects.bulk_update(comments, ["created_at"])
+
+    return comments
 
 def clear_seed_data():
     Comment.objects.all().delete()
